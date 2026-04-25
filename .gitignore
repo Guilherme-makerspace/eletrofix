@@ -1,41 +1,104 @@
-# See https://help.github.com/articles/ignoring-files/ for more about ignoring files.
-
-# dependencies
-/node_modules
-/.pnp
-.pnp.*
-.yarn/*
-!.yarn/patches
-!.yarn/plugins
-!.yarn/releases
-!.yarn/versions
-
-# testing
-/coverage
-
-# next.js
-/.next/
-/out/
-
-# production
-/build
-
-# misc
-.DS_Store
-*.pem
-
-# debug
+# ============================================
+# Node.js / npm
+# ============================================
+node_modules/
 npm-debug.log*
 yarn-debug.log*
 yarn-error.log*
 .pnpm-debug.log*
 
-# env files (can opt-in for committing if needed)
-.env*
+# Lock files (opcional — manter se quiser versionar)
+# package-lock.json
+# yarn.lock
+# pnpm-lock.yaml
 
-# vercel
-.vercel
+# ============================================
+# Ambiente e Configurações Sensíveis
+# ============================================
+.env
+.env.local
+.env.*.local
+.env.development
+.env.test
+.env.production
 
-# typescript
+# ============================================
+# Next.js / Frontend
+# ============================================
+.next/
+out/
+build/
+dist/
 *.tsbuildinfo
 next-env.d.ts
+
+# ============================================
+# Backend / Logs
+# ============================================
+logs/
+*.log
+pids/
+*.pid
+*.seed
+*.pid.lock
+
+# ============================================
+# Sistema Operacional
+# ============================================
+# macOS
+.DS_Store
+.AppleDouble
+.LSOverride
+
+# Windows
+Thumbs.db
+Thumbs.db:encryptable
+ehthumbs.db
+Desktop.ini
+$RECYCLE.BIN/
+
+# Linux
+*~
+.nfs*
+
+# ============================================
+# Editores / IDEs
+# ============================================
+# VSCode (apenas configurações locais/pessoais)
+.vscode/settings.json
+.vscode/launch.json
+.vscode/tasks.json
+*.code-workspace
+
+# IntelliJ / WebStorm / PyCharm
+.idea/
+*.iml
+*.iws
+*.ipr
+
+# Sublime Text
+*.sublime-project
+*.sublime-workspace
+
+# ============================================
+# Testes e Cobertura
+# ============================================
+coverage/
+.nyc_output/
+
+# ============================================
+# Arquivos Temporários
+# ============================================
+*.tmp
+*.temp
+*.swp
+*.swo
+*~
+.cache/
+
+# ============================================
+# Outros
+# ============================================
+.vercel
+.netlify
+
