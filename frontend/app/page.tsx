@@ -27,7 +27,7 @@ export default function Home() {
         </div>
 
         <div className="hidden md:flex items-center gap-2">
-           <span className="text-sm text-gray-600 font-medium mr-2">Precisa de ajuda? <br/><span className="font-bold text-eletro-dark">Fale Conosco</span></span>
+           <span className="text-sm text-gray-600 font-medium mr-2">Precisa de ajuda? <br/><span className="font-bold text-eletro-dark"><a href="https://github.com/Guilherme-makerspace">Fale Conosco</a></span></span>
         </div>
       </header>
 
@@ -38,7 +38,7 @@ export default function Home() {
       <div className="flex-1 flex flex-col items-center px-4 py-10 bg-[url('https://www.transparenttextures.com/patterns/cubes.png')] bg-opacity-5">
         <div className="text-center mb-8">
           <h1 className="text-3xl font-extrabold text-eletro-blue uppercase tracking-tight">
-            Desperte seu lado <span className="text-eletro-yellow bg-eletro-blue px-2">Maker</span>
+            Desperte seu lado<span className="text-eletro-yellow bg-eletro-blue px-2">Maker</span>
           </h1>
           <p className="text-gray-600 text-sm mt-3 font-medium">
             Tire suas dúvidas sobre manutenção e reparo de eletrônicos com nossa inteligência artificial.

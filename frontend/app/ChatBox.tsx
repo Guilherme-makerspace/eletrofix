@@ -101,11 +101,12 @@ export default function ChatBox() {
             )}
 
             <div
-              className={`max-w-[75%] px-4 py-3 rounded-2xl text-sm leading-relaxed ${
+              className={`max-w-[75%] px-4 py-2.5 rounded-2xl text-sm leading-relaxed ${
                 msg.role === "user"
-                  ? "bg-eletro-blue text-white rounded-tr-sm shadow-md"
-                  : "bg-white text-gray-700 border border-gray-200 rounded-tl-sm shadow-sm"
+                  ? "rounded-tr-sm border border-gray-200 shadow-sm"
+                  : "bg-white text-gray-800 border border-gray-200 rounded-tl-sm shadow-sm"
               }`}
+              style={msg.role === "user" ? { backgroundColor: "#ffffff", color: "#1a1a1a" } : {}}
             >
               {msg.content}
             </div>
@@ -114,24 +115,34 @@ export default function ChatBox() {
 
         {/* Indicador de digitando */}
         {loading && (
-          <div className="flex justify-start">
-            <div className="w-8 h-8 rounded bg-eletro-blue flex items-center justify-center text-eletro-yellow font-bold text-xs mr-3 flex-shrink-0 shadow-sm">
-              EF
-            </div>
-            <div className="bg-white border border-gray-200 rounded-2xl rounded-tl-sm px-4 py-3 shadow-sm flex gap-1.5 items-center">
-              <span className="w-2 h-2 bg-eletro-blue rounded-full animate-bounce [animation-delay:0ms]" />
-              <span className="w-2 h-2 bg-eletro-blue rounded-full animate-bounce [animation-delay:150ms]" />
-              <span className="w-2 h-2 bg-eletro-blue rounded-full animate-bounce [animation-delay:300ms]" />
-            </div>
-          </div>
-        )}
+  <div className="flex justify-start">
+    <div className="w-8 h-8 rounded-full flex items-center justify-center text-xs mr-2 flex-shrink-0"
+      style={{ backgroundColor: "#ffffff", color: "#1a1a1a", fontWeight: 700 }}>
+      EF
+    </div>
+    <div className="bg-white border border-gray-200 rounded-2xl rounded-tl-sm px-4 py-3 shadow-sm flex gap-1 items-center">
+      <span style={{
+        width: 8, height: 8, borderRadius: "50%", backgroundColor: "#1a1a1a", display: "inline-block",
+        animation: "bounce 1s infinite", animationDelay: "0ms"
+      }} />
+      <span style={{
+        width: 8, height: 8, borderRadius: "50%", backgroundColor: "#1a1a1a", display: "inline-block",
+        animation: "bounce 1s infinite", animationDelay: "150ms"
+      }} />
+      <span style={{
+        width: 8, height: 8, borderRadius: "50%", backgroundColor: "#1a1a1a", display: "inline-block",
+        animation: "bounce 1s infinite", animationDelay: "300ms"
+      }} />
+    </div>
+  </div>
+)}
 
         <div ref={bottomRef} />
       </div>
 
       {/* Sugestões rápidas */}
       <div className="px-5 py-3 flex gap-2 flex-wrap border-t border-gray-200 bg-white">
-        {["Trocar tela de celular", "Notebook lento", "Formas de pagamento"].map(
+        {["ESP-32 é compativél com quais componentes", "Notebook lento", "Problemas com arduino"].map(
           (suggestion) => (
             <button
               key={suggestion}

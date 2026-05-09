@@ -1,5 +1,6 @@
 const OLLAMA_URL = "http://localhost:11434/api/chat";
 const MODEL = "llama3.2";
+const TIMEOUT_MS = 60000; // 60 segundos
 
 const SYSTEM_PROMPT = `Você é um assistente virtual da EletroFix, uma empresa especializada em manutenção e reparo de eletrônicos.
 Você deve responder perguntas sobre:
@@ -34,6 +35,7 @@ async function askOllama(message, context, history = []) {
     const response = await fetch(OLLAMA_URL, {
       method: "POST",
       headers: { "Content-Type": "application/json" },
+      signal: AbortSignal.timeout(TIMEOUT_MS),
       body: JSON.stringify({
         model: MODEL,
         messages,
@@ -51,6 +53,12 @@ async function askOllama(message, context, history = []) {
     return data.message.content;
 
   } catch (error) {
+
+    if (error.name === "TimeoutError") {
+      console.error("Ollama não respondeu em 30 segundos.");
+      throw new Error("O modelo demorou demais para responder. Tente novamente.");
+    }
+
     console.error("Erro ao chamar o Ollama:", error.message);
     throw new Error("Não foi possível conectar ao modelo de linguagem.");
   }
