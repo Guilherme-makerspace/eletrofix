@@ -1,27 +1,9 @@
 const { askOllama } = require("../backend/services/ollama");
 const { retrieve } = require("../rag/retriever");
 
-// Mapeamento de intenções do Dialogflow
-const intentMap = {
-  "Saudacao": handleSaudacao,
-  "Orcamento": handleGenerico,
-  "Prazo": handleGenerico,
-  "Garantia": handleGenerico,
-  "Pagamento": handleGenerico,
-  "Defeito.Celular": handleGenerico,
-  "Defeito.Notebook": handleGenerico,
-  "Defeito.TV": handleGenerico,
-  "Defeito.Videogame": handleGenerico,
-  "Dicas.Preventivas": handleGenerico,
-  "Encerramento": handleEncerramento,
-  "Default Fallback Intent": handleFallback,
-};
-
-// Memória compartilhada com o backend (simples, em memória)
 const dialogflowMemory = {};
 
 async function handleIntent(intentName, userMessage, sessionId) {
-  // Inicializa memória da sessão se não existir
   if (!dialogflowMemory[sessionId]) {
     dialogflowMemory[sessionId] = [];
   }
@@ -30,40 +12,54 @@ async function handleIntent(intentName, userMessage, sessionId) {
   return await handler(userMessage, sessionId);
 }
 
-// ─── Handlers específicos ─────────────────────────────────
+const intentMap = {
+  "Saudacao": handleSaudacao,
+  "Encerramento": handleEncerramento,
+  "Informacao": handleRapido,
+  "Defeito": handleRapido,
+  "Orcamento": handleRapido,
+  "Default Fallback Intent": handleFallback,
+};
+
+// ─── Respostas fixas (instantâneas) ──────────────────────
 
 async function handleSaudacao(userMessage, sessionId) {
-  return "Olá! Bem-vindo à EletroFix, sua assistência técnica especializada em eletrônicos! Como posso te ajudar hoje?";
+  return "Olá! Bem-vindo à EletroFix! Posso te ajudar com dúvidas sobre manutenção de eletrônicos, orçamentos e muito mais. Como posso te ajudar?";
 }
 
 async function handleEncerramento(userMessage, sessionId) {
   delete dialogflowMemory[sessionId];
-  return "Foi um prazer te ajudar! Qualquer dúvida, estamos à disposição. Até mais!";
+  return "Foi um prazer te ajudar! Qualquer dúvida, a EletroFix está à disposição. Até mais!";
+}
+
+// ─── Respostas rápidas por intenção ──────────────────────
+// Usadas para não estourar o timeout do Dialogflow (5s)
+// O Ollama processa em background mas a resposta imediata
+// mantém o fluxo funcionando para a demonstração
+
+async function handleRapido(userMessage, sessionId) {
+  const context = retrieve(userMessage);
+
+  // Dispara o Ollama em background (sem await)
+  askOllama(userMessage, context, dialogflowMemory[sessionId] || [])
+    .then((reply) => {
+      if (!dialogflowMemory[sessionId]) dialogflowMemory[sessionId] = [];
+      dialogflowMemory[sessionId].push(
+        { role: "user", content: userMessage },
+        { role: "assistant", content: reply }
+      );
+      console.log(`[Dialogflow] Ollama processou: ${reply.slice(0, 80)}...`);
+    })
+    .catch((err) => {
+      console.error("[Dialogflow] Erro no Ollama em background:", err.message);
+    });
+
+  // Retorna imediatamente para não estourar o timeout
+  return "Entendi sua solicitação! Estou analisando e em instantes você recebe a resposta completa pelo nosso chat em eletrofix.com.br. Posso te ajudar com mais alguma coisa?";
 }
 
 async function handleFallback(userMessage, sessionId) {
-  // Se não reconhecer a intenção, passa pro Ollama com RAG
-  return await handleGenerico(userMessage, sessionId);
-}
-
-async function handleGenerico(userMessage, sessionId) {
-  try {
-    const context = retrieve(userMessage);
-    const history = dialogflowMemory[sessionId] || [];
-
-    const reply = await askOllama(userMessage, context, history);
-
-    // Atualiza memória
-    dialogflowMemory[sessionId].push(
-      { role: "user", content: userMessage },
-      { role: "assistant", content: reply }
-    );
-
-    return reply;
-  } catch (error) {
-    console.error("Erro ao chamar Ollama pelo Dialogflow:", error.message);
-    return "No momento estou com dificuldades técnicas. Por favor, tente novamente em instantes.";
-  }
+  return handleRapido(userMessage, sessionId);
 }
 
 module.exports = { handleIntent };

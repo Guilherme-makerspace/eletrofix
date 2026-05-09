@@ -61,6 +61,22 @@ export default function ChatBox() {
       setLoading(false);
     }
   }
+  async function clearConversation() {
+    try {
+      await fetch(`http://localhost:3001/api/chat/memory/${sessionId}`, {
+        method: "DELETE",
+      });
+    } catch {
+      console.error("Erro ao limpar memória.");
+    }
+    setMessages([
+      {
+        role: "assistant",
+        content: "Conversa reiniciada! Como posso te ajudar?",
+      },
+    ]);
+    setInput("");
+  } 
 
   function handleKeyDown(e: React.KeyboardEvent<HTMLInputElement>) {
     if (e.key === "Enter") sendMessage();
@@ -71,17 +87,25 @@ export default function ChatBox() {
       
       {/* Título do chat */}
       <div className="bg-white px-5 py-4 flex items-center justify-between border-b border-gray-200">
-        <div className="flex items-center gap-2">
-          <div className="w-2.5 h-2.5 rounded-sm bg-eletro-blue" />
-          <span className="text-eletro-dark text-base font-bold tracking-wide uppercase">
-            Assistente EletroFix
-          </span>
-        </div>
-        <div className="flex items-center gap-2 border border-gray-200 px-3 py-1 rounded-full">
-          <span className="w-2 h-2 bg-green-500 rounded-full animate-pulse" />
-          <span className="text-gray-500 text-[10px] font-bold uppercase tracking-wider">Online</span>
-        </div>
-      </div>
+  <div className="flex items-center gap-2">
+    <div className="w-2.5 h-2.5 rounded-sm bg-eletro-blue" />
+    <span className="text-eletro-dark text-base font-bold tracking-wide uppercase">
+      Assistente EletroFix
+    </span>
+  </div>
+  <div className="flex items-center gap-3">
+    <div className="flex items-center gap-2 border border-gray-200 px-3 py-1 rounded-full">
+      <span className="w-2 h-2 bg-green-500 rounded-full animate-pulse" />
+      <span className="text-gray-500 text-[10px] font-bold uppercase tracking-wider">Online</span>
+    </div>
+    <button
+      onClick={clearConversation}
+      className="text-xs text-gray-500 hover:text-gray-800 transition-colors border border-gray-300 hover:border-gray-500 px-3 py-1 rounded-full"
+    >
+      Nova conversa
+    </button>
+  </div>
+</div>
       
       {/* Faixa azul fina decorativa */}
       <div className="h-1 w-full bg-eletro-blue" />

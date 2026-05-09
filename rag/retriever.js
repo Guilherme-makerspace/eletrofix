@@ -2,17 +2,26 @@ const fs = require("fs");
 const path = require("path");
 const { knowledgeBase } = require("./knowledge");
 
-// Carrega o knowledge.txt
+// Cache do knowledge.txt
+let txtCache = null;
+
 function loadTxtKnowledge() {
+  if (txtCache) return txtCache;
   const filePath = path.join(__dirname, "knowledge.txt");
-  const content = fs.readFileSync(filePath, "utf-8");
-  return content
-    .split("\n")
-    .map((line) => line.trim())
-    .filter((line) => line.length > 0);
+  try {
+    const raw = fs.readFileSync(filePath, "utf-8");
+    txtCache = raw
+      .split("\n")
+      .map((line) => line.trim())
+      .filter((line) => line.length > 0);
+    console.log("[RAG] knowledge.txt carregado em cache.");
+  } catch (err) {
+    console.error("Erro ao ler knowledge.txt:", err.message);
+    txtCache = [];
+  }
+  return txtCache;
 }
 
-// Normaliza texto para comparação
 function normalize(text) {
   return text
     .toLowerCase()
@@ -22,7 +31,6 @@ function normalize(text) {
     .trim();
 }
 
-// Calcula score de relevância entre a mensagem e um texto
 function scoreMatch(message, text) {
   const normalizedMessage = normalize(message);
   const normalizedText = normalize(text);
@@ -37,7 +45,6 @@ function scoreMatch(message, text) {
   return score;
 }
 
-// Busca no knowledge.js (estruturado com tags)
 function searchStructured(message) {
   const normalizedMessage = normalize(message);
   const results = [];
@@ -45,14 +52,12 @@ function searchStructured(message) {
   for (const item of knowledgeBase) {
     let score = 0;
 
-    // Verifica tags
     for (const tag of item.tags) {
       if (normalizedMessage.includes(normalize(tag))) {
-        score += 2; // tags têm peso maior
+        score += 2;
       }
     }
 
-    // Verifica conteúdo
     score += scoreMatch(message, item.content);
 
     if (score > 0) {
@@ -66,7 +71,6 @@ function searchStructured(message) {
     .map((r) => r.content);
 }
 
-// Busca no knowledge.txt (linhas técnicas)
 function searchTxt(message) {
   const lines = loadTxtKnowledge();
   const results = [];
@@ -84,7 +88,6 @@ function searchTxt(message) {
     .map((r) => r.content);
 }
 
-// Função principal de recuperação
 function retrieve(message) {
   const structuredResults = searchStructured(message);
   const txtResults = searchTxt(message);
