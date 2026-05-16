@@ -5,6 +5,7 @@ import { useState, useRef, useEffect } from "react";
 type Message = {
   role: "user" | "assistant";
   content: string;
+  ragUsed?: boolean;
 };
 
 export default function ChatBox() {
@@ -46,6 +47,7 @@ export default function ChatBox() {
       const botMessage: Message = {
         role: "assistant",
         content: data.reply || "Não consegui processar sua mensagem.",
+        ragUsed: data.ragUsed,
       };
 
       setMessages((prev) => [...prev, botMessage]);
@@ -112,30 +114,50 @@ export default function ChatBox() {
 
       {/* Área de mensagens */}
       <div className="flex-1 overflow-y-auto px-5 py-6 flex flex-col gap-4 min-h-[420px] max-h-[420px] bg-eletro-light">
-        {messages.map((msg, i) => (
-          <div
-            key={i}
-            className={`flex ${msg.role === "user" ? "justify-end" : "justify-start"}`}
-          >
-            {/* Avatar do bot */}
-            {msg.role === "assistant" && (
-              <div className="w-8 h-8 rounded bg-eletro-blue flex items-center justify-center text-eletro-yellow font-bold text-xs mr-3 flex-shrink-0 mt-1 shadow-sm">
-                EF
-              </div>
-            )}
+      {messages.map((msg, i) => (
+  <div
+    key={i}
+    className={`flex flex-col ${msg.role === "user" ? "items-end" : "items-start"}`}
+  >
+    <div className={`flex ${msg.role === "user" ? "justify-end" : "justify-start"} w-full`}>
+      {msg.role === "assistant" && (
+        <div
+          className="w-8 h-8 rounded-full flex items-center justify-center text-xs mr-2 flex-shrink-0 mt-1"
+          style={{ backgroundColor: "#ffffff", color: "#1a1a1a", fontWeight: 700 }}
+        >
+          EF
+        </div>
+      )}
+      <div
+        className={`max-w-[75%] px-4 py-2.5 rounded-2xl text-sm leading-relaxed ${
+          msg.role === "user"
+            ? "rounded-tr-sm border border-gray-200 shadow-sm"
+            : "bg-white text-gray-800 border border-gray-200 rounded-tl-sm shadow-sm"
+        }`}
+        style={msg.role === "user" ? { backgroundColor: "#ffffff", color: "#1a1a1a" } : {}}
+      >
+        {msg.content}
+      </div>
+    </div>
 
-            <div
-              className={`max-w-[75%] px-4 py-2.5 rounded-2xl text-sm leading-relaxed ${
-                msg.role === "user"
-                  ? "rounded-tr-sm border border-gray-200 shadow-sm"
-                  : "bg-white text-gray-800 border border-gray-200 rounded-tl-sm shadow-sm"
-              }`}
-              style={msg.role === "user" ? { backgroundColor: "#ffffff", color: "#1a1a1a" } : {}}
-            >
-              {msg.content}
-            </div>
-          </div>
-        ))}
+    {/* Indicador RAG */}
+    {msg.role === "assistant" && msg.ragUsed && (
+      <div className="flex items-center gap-1 ml-10 mt-1">
+        <span style={{
+          fontSize: "10px",
+          color: "#7d7d7d",
+          background: "#ffffff",
+          border: "1px solid #b3b3b3",
+          borderRadius: "20px",
+          padding: "1px 8px",
+          fontWeight: 500,
+        }}>
+          📚 Baseado na base de conhecimento
+        </span>
+      </div>
+    )}
+  </div>
+))}
 
         {/* Indicador de digitando */}
         {loading && (

@@ -1,6 +1,6 @@
 const OLLAMA_URL = "http://localhost:11434/api/chat";
 const MODEL = "llama3.2";
-const TIMEOUT_MS = 60000; // 60 segundos
+const TIMEOUT_MS = 30000;
 
 const SYSTEM_PROMPT = `Você é um assistente virtual da EletroFix, uma empresa especializada em manutenção e reparo de eletrônicos.
 Você deve responder perguntas sobre:
@@ -18,13 +18,22 @@ Regras importantes:
 - Utilize o contexto fornecido para enriquecer suas respostas
 - Nunca invente preços ou prazos que não estejam no contexto`;
 
-async function askOllama(message, context, history = []) {
-  // Monta mensagem com contexto RAG
+function log(sessionId, label, value) {
+  const time = new Date().toLocaleTimeString("pt-BR");
+  console.log(`[${time}] [${sessionId?.slice(0, 8) ?? "dialogflow"}] ${label}: ${value}`);
+}
+
+async function askOllama(message, context, history = [], sessionId = null) {
+  const startTime = Date.now();
+
+  log(sessionId, "Mensagem recebida", message.slice(0, 60));
+  log(sessionId, "Histórico", `${history.length / 2} turno(s)`);
+  log(sessionId, "RAG", context ? `${context.length} caracteres de contexto` : "sem contexto");
+
   const userMessageWithContext = context
     ? `Contexto relevante da base de conhecimento:\n${context}\n\nPergunta do cliente: ${message}`
     : message;
 
-  // Monta array de mensagens com histórico + nova mensagem
   const messages = [
     { role: "system", content: SYSTEM_PROMPT },
     ...history,
@@ -45,21 +54,25 @@ async function askOllama(message, context, history = []) {
 
     if (!response.ok) {
       const errorText = await response.text();
-      console.error("Erro do Ollama:", errorText);
+      console.error(`[Ollama] Erro HTTP ${response.status}:`, errorText);
       throw new Error("Ollama retornou um erro.");
     }
 
     const data = await response.json();
-    return data.message.content;
+    const reply = data.message.content;
+    const elapsed = ((Date.now() - startTime) / 1000).toFixed(1);
+
+    log(sessionId, "Resposta gerada", `${elapsed}s — ${reply.length} caracteres`);
+
+    return reply;
 
   } catch (error) {
-
     if (error.name === "TimeoutError") {
-      console.error("Ollama não respondeu em 30 segundos.");
+      console.error(`[Ollama] Timeout após ${TIMEOUT_MS / 1000}s`);
       throw new Error("O modelo demorou demais para responder. Tente novamente.");
     }
 
-    console.error("Erro ao chamar o Ollama:", error.message);
+    console.error("[Ollama] Erro:", error.message);
     throw new Error("Não foi possível conectar ao modelo de linguagem.");
   }
 }

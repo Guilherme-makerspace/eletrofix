@@ -3,13 +3,29 @@ const router = express.Router();
 const { askOllama } = require("../services/ollama");
 const { retrieve } = require("../../rag/retriever");
 
-// Memória de conversa por sessão
 const conversationMemory = {};
+const TTL_MS = 30 * 60 * 1000;
+
+setInterval(() => {
+  const now = Date.now();
+  let removidas = 0;
+
+  for (const sessionId in conversationMemory) {
+    const session = conversationMemory[sessionId];
+    if (now - session.lastActivity > TTL_MS) {
+      delete conversationMemory[sessionId];
+      removidas++;
+    }
+  }
+
+  if (removidas > 0) {
+    console.log(`[TTL] ${removidas} sessão(ões) expirada(s) removida(s).`);
+  }
+}, 10 * 60 * 1000);
 
 router.post("/", async (req, res) => {
   const { message, sessionId } = req.body;
 
-  // Validação de entrada
   if (!message || message.trim() === "") {
     return res.status(400).json({ error: "O campo 'message' é obrigatório." });
   }
@@ -19,27 +35,27 @@ router.post("/", async (req, res) => {
   }
 
   try {
-    // Inicializa memória da sessão se não existir
     if (!conversationMemory[sessionId]) {
-      conversationMemory[sessionId] = [];
+      conversationMemory[sessionId] = {
+        history: [],
+        lastActivity: Date.now(),
+      };
     }
 
-    // Busca contexto relevante na base de conhecimento (RAG)
+    conversationMemory[sessionId].lastActivity = Date.now();
+
     const context = retrieve(message);
+    const history = conversationMemory[sessionId].history;
 
-    // Monta histórico da conversa
-    const history = conversationMemory[sessionId];
+    // sessionId passado corretamente dentro da função async
+    const reply = await askOllama(message, context, history, sessionId);
 
-    // Envia para o Ollama
-    const reply = await askOllama(message, context, history);
-
-    // Atualiza memória com a nova troca
-    conversationMemory[sessionId].push(
+    conversationMemory[sessionId].history.push(
       { role: "user", content: message },
       { role: "assistant", content: reply }
     );
 
-    return res.json({ reply });
+    return res.json({ reply, ragUsed: context !== null });
 
   } catch (error) {
     console.error("Erro na rota /chat:", error.message);
@@ -47,7 +63,6 @@ router.post("/", async (req, res) => {
   }
 });
 
-// Rota para limpar histórico da sessão
 router.delete("/memory/:sessionId", (req, res) => {
   const { sessionId } = req.params;
   delete conversationMemory[sessionId];
